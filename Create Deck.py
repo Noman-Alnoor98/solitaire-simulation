@@ -18,3 +18,13 @@ def shuffle_deck(deck , seed = None):
     rng.shuffle(deck_copy)
     return deck_copy
 
+def deal_freecell(deck):
+    deck_copy = deck.copy()
+    tableau = [[],[],[],[],[],[],[],[]]
+    for i in range(len(deck_copy)):
+        tableau[i%8].append(deck_copy.pop())
+    return tableau
+
+
+
+
