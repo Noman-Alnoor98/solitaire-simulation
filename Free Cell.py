@@ -281,15 +281,5 @@ def check_moves(game):
 
 
 
-game = new_game(seed=1998)
-
-# Starting board
-check_moves(game)
-
-# Board with an occupied free cell
-assert move_to_freecell(game, 0, 0) is True
-check_moves(game)
-
-
 
 
