@@ -1,5 +1,5 @@
 import random
-
+from copy import deepcopy
 suits = ["♠", "♥", "♦", "♣"]
 ranks = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"]
 def create_deck():
@@ -231,8 +231,7 @@ def legal_move(game):
             if free_cells[i] is None:
                 continue
             card = free_cells[i]
-            source_card = columns[i][-1]
-            suit = source_card["card"][1]
+            suit = card["card"][1]
             foundation = foundations[suit]
 
             if foundation_move_check(card, foundation):
@@ -251,6 +250,45 @@ def legal_move(game):
 
     return moves
 
+def apply_move(game,move):
+    move_type = move["type"]
+    source = move["source"]
+    destination = move["destination"]
+
+    if move_type == "column_to_column":
+        return move_across_cols(game,source,destination)
+    if move_type == "column_to_freecell":
+        return move_to_freecell(game,source,destination)
+    if move_type == "freecell_to_column":
+        return move_from_freecell(game,source,destination)
+    if move_type == "column_to_foundation":
+        return move_column_to_foundation(game,source)
+    if move_type == "freecell_to_foundation":
+        return move_freecell_to_foundation(game,source)
+    return False
+    
+    
+def check_moves(game):
+    before = deepcopy(game)
+    moves = legal_move(game)
+    assert game == before, "Moves changed the board"
+    for move in moves:
+        trial_game = deepcopy(before)
+        assert apply_move(trial_game,move) is True,(
+            f"Cannot apply move : {move}"
+        )
+    print(f"Passed: {len(moves)} moves are working")
+
+
+
+game = new_game(seed=1998)
+
+# Starting board
+check_moves(game)
+
+# Board with an occupied free cell
+assert move_to_freecell(game, 0, 0) is True
+check_moves(game)
 
 
 
