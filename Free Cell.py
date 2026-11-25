@@ -1,5 +1,6 @@
 import random
 from copy import deepcopy
+
 suits = ["♠", "♥", "♦", "♣"]
 ranks = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"]
 def create_deck():
@@ -279,7 +280,12 @@ def check_moves(game):
         )
     print(f"Passed: {len(moves)} moves are working")
 
+def random_strategy(game,moves,rng):
+    assert len(moves) != 0, "No legal moves"
+    return rng.choice(moves)
 
+def simulate(game,strategy, game_seed,strategy_seed,max_moves = 1000):
+    
 
 
 
