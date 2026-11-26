@@ -1,5 +1,6 @@
 import random
 from copy import deepcopy
+import pandas as pd
 
 suits = ["♠", "♥", "♦", "♣"]
 ranks = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"]
@@ -284,8 +285,67 @@ def random_strategy(game,moves,rng):
     assert len(moves) != 0, "No legal moves"
     return rng.choice(moves)
 
-def simulate(game,strategy, game_seed,strategy_seed,max_moves = 1000):
+def simulate(strategy, game_seed,strategy_seed,max_moves = 100000):
+    game = new_game(seed = game_seed)
+    rng = random.Random(strategy_seed)
+    moves_played = 0
+    stop_reason = None
+    while True:
+        if not game_won(game):
+            if not moves_played >= max_moves:
+                moves = legal_move(game)
+                if len(moves) == 0:
+                    stop_reason = "no_moves_left"
+                    break
+                chosen_move = strategy(game,moves,rng)
+                if not apply_move(game,chosen_move):
+                    raise RuntimeError(f"Move was rejectd: {chosen_move}")
+                moves_played += 1
+            else:
+                stop_reason = "move_limit_reached"
+                break
+        else:
+            stop_reason = "game_won"
+            break
+    return {
+        "won": stop_reason == "game_won",
+        "moves": moves_played,
+        "foundation_cards": sum(
+            len(pile) for pile in game["foundations"].values()
+                ),
+        "stop_reason": stop_reason,
+        "game_seed": game_seed,
+        "strategy_seed": strategy_seed
+    }
+
+def simulate_games(strategy,game_seeds,strategy_seed = 1998, max_moves = 1000):
+    results = []
     
+    for run, seed in enumerate(game_seeds):
+        result = simulate(random_strategy,game_seed=seed,strategy_seed=strategy_seed+run,max_moves=1000)
+        result["strategy"]  = strategy.__name__
+        result["max_moves"] = max_moves
+        results.append(result)
+    return results
+
+
+results = simulate_games(
+    random_strategy,
+    game_seeds=range(1998, 2018),
+    strategy_seed=42,
+    max_moves=1000
+)
 
 
 
+simulation_results = pd.DataFrame(results)
+
+
+print("Games played:", len(simulation_results))
+print("Games won:", simulation_results["won"].sum())
+print("Win rate (%):", 100 * simulation_results["won"].mean())
+print("Average foundation cards:", simulation_results["foundation_cards"].mean())
+print("Average moves played:", simulation_results["moves"].mean())
+
+print("\nStopping reasons:")
+print(simulation_results["stop_reason"].value_counts())
